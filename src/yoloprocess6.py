@@ -223,22 +223,22 @@ class YOLOP(object):
                             print('(',x1,',',y1,')','(',x2,',',y2,')')
                             i=i+1
                             print("SUM of i=",i,'-------------------------------------------------------结束循环---------------------------------------------------------')#在每张图片处理结束后显示
-                cv2.imwrite('2.jpg',rank_2)
-                print(rank_2)
-                s = cv2.imread('2.jpg')     
-                cv2.imshow('img2',s)
-                cv2.waitKey(1)
-                print(f'Done. ({time.time() - t0:.3f}s)')
-                rate = rospy.Rate(2)
-                sizelist=[im0.shape[0],im0.shape[1]]
-                r1=Float64MultiArray()
-                final=np.array(rank_2.reshape(rank_2.size))
-                r1.data=np.append(sizelist,final)
-                self.pub2.publish(r1)
-                rate.sleep()
-                self.image = im0[:, :, [2, 1, 0]]
-                yolo_idmask= self.image
-                yolo_scoremask=self.image
+                            cv2.imwrite('2.jpg',rank_2)
+                            print(rank_2)
+                            s = cv2.imread('2.jpg')     
+                            cv2.imshow('img2',s)
+                            cv2.waitKey(1)
+                            print(f'Done. ({time.time() - t0:.3f}s)')
+                            rate = rospy.Rate(2)
+                            sizelist=[im0.shape[0],im0.shape[1]]
+                            r1=Float64MultiArray()
+                            final=np.array(rank_2.reshape(rank_2.size))
+                            r1.data=np.append(sizelist,final)
+                            self.pub2.publish(r1)
+                            rate.sleep()
+                            self.image = im0[:, :, [2, 1, 0]]
+                            yolo_idmask= self.image
+                            yolo_scoremask=self.image
                 #yolo_probability=rank_2
                
                 #print(yolo_idmask==yolo_scoremask).all()
