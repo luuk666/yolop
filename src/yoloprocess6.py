@@ -115,7 +115,7 @@ class YOLOP(object):
                 img = np.ascontiguousarray(img)
                 return path, img, img0, cap
                 print('加载图片')
-            
+
         def callback(self, msg):
                 rospy.loginfo('Image received...')
                 self.image = self.cvb.imgmsg_to_cv2(msg)
@@ -183,11 +183,12 @@ class YOLOP(object):
                                 y2=int(xyxy[3])
                                 xc=x2-x1
                                 yc=y2-y1
-                                print(x1,x2,y1,y2,'---------------------------------------------------------------开始循化-------------------------------------------------------------')
+                                print(x1,x2,y1,y2,'——识别框的四点坐标')
                                 tot=xc*yc
                                 print('tot:',tot,'x2-x1=',xc,'y2-y1=',yc)
                                 print('rank_2:',shape(rank_2))
                                 print('rank_2局部大小:',shape(rank_2[x1:x2,y1:y2]))
+                                print("再次打印x1x2",x1,x2)
                                 d = np.random.randn(tot, 2)
                                 #print('d:',d)
                                 #print(shape(d))
@@ -222,12 +223,13 @@ class YOLOP(object):
                             #rank_2=rank_2*255
                             print('(',x1,',',y1,')','(',x2,',',y2,')')
                             i=i+1
-                            print("SUM of i=",i,'-------------------------------------------------------结束循环---------------------------------------------------------')#在每张图片处理结束后显示
-                            cv2.imwrite('2.jpg',rank_2)
-                            print(rank_2)
+                            print("SUM of i=",i)#在每张图片处理结束后显示
+                            '''cv2.imwrite('2.jpg',rank_2)
+                            print("rank_2的大小:",rank_2.size)
+                            print("rank_2的形状:",rank_2.shape)
                             s = cv2.imread('2.jpg')     
                             cv2.imshow('img2',s)
-                            cv2.waitKey(1)
+                            cv2.waitKey(1)'''
                             print(f'Done. ({time.time() - t0:.3f}s)')
                             rate = rospy.Rate(2)
                             sizelist=[im0.shape[0],im0.shape[1]]
@@ -243,12 +245,12 @@ class YOLOP(object):
                
                 #print(yolo_idmask==yolo_scoremask).all()
 
-                print('idmask是什么',type(yolo_idmask))
+                '''print('idmask是什么',type(yolo_idmask))
                 print("数组大小：", yolo_idmask.size)      #打印数组尺寸，即数组元素总数  
                 print("数组形状：", yolo_idmask.shape)         #打印数组形状  
                 print("数组的维度数目", yolo_idmask.ndim)      #打印数组的维度数目               
                 cv2.imwrite('4.jpg',yolo_idmask)
-                print(yolo_idmask)
+                #print(yolo_idmask)
                 j = cv2.imread('4.jpg')     
                 cv2.imshow('img4',j)
                 cv2.waitKey(1)
@@ -259,13 +261,10 @@ class YOLOP(object):
                 print("数组的维度数目", yolo_scoremask.ndim)      #打印数组的维度数目 
                 #print(yolo_scoremask)
                 cv2.imwrite('3.jpg',yolo_scoremask)
-                print(yolo_scoremask)
+                #print(yolo_scoremask)
                 s = cv2.imread('3.jpg')     
                 cv2.imshow('img3',s)
-                cv2.waitKey(1)
-
-
-
+                cv2.waitKey(1)'''
                 '''data =img
                 print(data)
                 print("Type of every element:", data.dtype)
@@ -286,6 +285,7 @@ class YOLOP(object):
                 #self.yoloresult.probability = self.cvb.cv2_to_imgmsg(yolo_probability)
                 self.pub.publish(self.cvb.cv2_to_imgmsg(self.image))
                 ###################添加矩阵位置######################
+
 
 
 if __name__ == '__main__':
