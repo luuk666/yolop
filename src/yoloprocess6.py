@@ -167,7 +167,7 @@ class YOLOP(object):
                         i=0
                         wide=0
                         high=0
-                        rank_2 = np.ones((im0.shape[0],im0.shape[1]))*0.1
+                        rank_2 = np.ones((im0.shape[1],im0.shape[0]))*0.1
                         for *xyxy, conf, cls in reversed(det):
 
                             if save_txt:  # Write to file
