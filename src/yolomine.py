@@ -103,7 +103,7 @@ class YOLOP(object):
                 self.agnostic_nms = agnostic_nms
                 self.probability = None #!!!!!!!!!!!!
                 self.pub = rospy.Publisher('/camera/image_raw', Image,queue_size=1)
-                rospy.Subscriber("/camera/rgb/image_color",Image,self.callback,queue_size=1,buff_size=52428800)
+                rospy.Subscriber("/kitti/camera_color_left/image_raw",Image,self.callback,queue_size=1,buff_size=52428800)
                 self.pub2 = rospy.Publisher('robot_pose', Float64MultiArray, queue_size=10)
         
         def loadimage(self, image, imgsz):
