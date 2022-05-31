@@ -103,7 +103,7 @@ class YOLOP(object):
                 self.agnostic_nms = agnostic_nms
                 self.probability = None #!!!!!!!!!!!!
                 self.pub = rospy.Publisher('/camera/image_raw', Image,queue_size=1)
-                rospy.Subscriber("/camera/rgb/image_color",Image,self.callback,queue_size=1,buff_size=52428800)
+                rospy.Subscriber("/kitti/camera_color_left/image_raw",Image,self.callback,queue_size=1,buff_size=52428800)
                 self.pub2 = rospy.Publisher('robot_pose', Float64MultiArray, queue_size=10)
         
         def loadimage(self, image, imgsz):
@@ -129,7 +129,7 @@ class YOLOP(object):
                 save_txt = self.save_txt
                 save_img = self.save_img 
                 # Initialize
-                print("初始化")
+                #print("初始化")
                 set_logging()
                 t0 = time.time()
                 path, img, img0, cap = self.loadimage(self.image, self.imgsz)
@@ -143,12 +143,12 @@ class YOLOP(object):
                 pred = self.model(img, augment=self.augment)[0]
                 
                 # Apply NMS
-                print("进行nms")
+                #print("进行nms")
                 pred = non_max_suppression(pred, self.conf_thres, self.iou_thres, classes=self.classes, agnostic=self.agnostic_nms)
                 t2 = time_synchronized()
                 
                 # Apply Classifier
-                print("应用类")
+                #print("应用类")
                 if self.classify:
                     pred = apply_classifier(pred, self.modelc, img, img0)
                 
@@ -164,12 +164,23 @@ class YOLOP(object):
                             n = (det[:, -1] == c).sum()  # detections per class
                             s += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "  # add to string
                         
-                        i=0
+                        p=0
                         wide=0
                         high=0
                         rank_2 = np.ones((im0.shape[0],im0.shape[1]))
                         for *xyxy, conf, cls in reversed(det):
-
+                            if self.names[int(cls)] == 'person':
+                                continue
+                            if self.names[int(cls)] == 'cup':
+                                continue
+                            if self.names[int(cls)] == 'chair':
+                                continue
+                            if self.names[int(cls)] == 'remote':
+                                continue
+                            if self.names[int(cls)] == 'keyboard':
+                                continue
+                            #if self.names[int(cls)] == 'laptop':
+                            #    continue
                             if save_txt:  # Write to file
                                 xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
                                 line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
@@ -181,56 +192,33 @@ class YOLOP(object):
                                 y1=int(xyxy[1])
                                 x2=int(xyxy[2])
                                 y2=int(xyxy[3])
-                                xc=x2-x1
-                                yc=y2-y1
-                                print(x1,x2,y1,y2,'——识别框的四点坐标')
-                                tot=xc*yc
-                                print('tot:',tot,'x2-x1=',xc,'y2-y1=',yc)
-                                print('rank_2:',shape(rank_2))
-                                print('rank_2局部大小:',shape(rank_2[x1:x2,y1:y2]))
-                                print("再次打印x1x2",x1,x2)
-                                d = np.random.randn(tot, 2)
-                                #print('d:',d)
-                                #print(shape(d))
-                                #print(type(d))
-                                density ,edges= np.histogramdd(d, bins=[xc, yc])
-                                #shape.rank_2
-                                
-                                #print(density)
-                                print('生成高斯大小:',shape(density))
-                                #print(type(density))
-                                if (shape(rank_2[x1:x2,y1:y2])!=shape(density)):
-                                    print ('大小不一样!!!!!!!!!!!!!!!!!!!!!!!!!')
-                            #a=np.linspace(int(xyxy[0]),int(xyxy[2]),int(xyxy[2])-int(xyxy[0]))
-                            #b=np.linspace(int(xyxy[1]),int(xyxy[3]),int(xyxy[3])-int(xyxy[1]))
-                            #meany=sum(a)/len(a)
-                            #meanx=sum(b)/len(b)
-                            #standard_deviationx=5.0
-                            #standard_deviationy=5.0*(y2-y1)/(x2-x1)
-                            #if (shape(rank_2[x1:x2,y1:y2])==shape(density)):                                 
-                                    #rank_2[x1:x2,y1:y2]=density#此处之后添加概率图
-                                    #for i in np.linspace(x1,x2,x2-x1):
-                                        #for j in np.linspace(y1,y2,y2-y1):
-                                            #z = np.exp(-((i-meany)**2/(2*(standard_deviationx**2)) + (j - meanx)**2/(2*(standard_deviationy**2))))
-                                            #print(np.exp(-((i-meany)**2/(2*(standard_deviation**2)) + (j - meanx)**2/(2*(standard_deviation**2))))
-                                            #z = z/(np.sqrt(2*np.pi)*standard_deviationy*standard_deviationx)
-                                            #if (rank_2[int(j-1)][int(i-1)]==0.1):
-                                                #rank_2[int(j-1)][int(i-1)]=int(z*1000*200*50)
-                                            #else:
-                                                #rank_2[int(j)][int(i)]=rank_2[int(j)][int(i)]+int(z*1000*200*50)*0.5
-                                #print("xyxy的类型",type(xyxy))
-                                #print("xyxy的内容",xyxy)
-                            #rank_2=rank_2*255
-                            print('(',x1,',',y1,')','(',x2,',',y2,')')
-                            i=i+1
-                            print("SUM of i=",i)#在每张图片处理结束后显示
-                            '''cv2.imwrite('2.jpg',rank_2)
-                            print("rank_2的大小:",rank_2.size)
-                            print("rank_2的形状:",rank_2.shape)
-                            s = cv2.imread('2.jpg')     
-                            cv2.imshow('img2',s)
-                            cv2.waitKey(1)'''
+                                a=np.linspace(int(xyxy[0]),int(xyxy[2]),int(xyxy[2])-int(xyxy[0]))
+                                b=np.linspace(int(xyxy[1]),int(xyxy[3]),int(xyxy[3])-int(xyxy[1]))
+                                meany=sum(a)/len(a)
+                                meanx=sum(b)/len(b)
+                                standard_deviationx=5.0
+                                standard_deviationy=5.0*(y2-y1)/(x2-x1)
+                                for i in np.linspace(x1,x2,x2-x1):
+                                    for j in np.linspace(y1,y2,y2-y1):
+                                        z = np.exp(-((i-meany)**2/(2*(standard_deviationx**2)) + (j - meanx)**2/(2*(standard_deviationy**2))))
+                                        #print(np.exp(-((i-meany)**2/(2*(standard_deviation**2)) + (j - meanx)**2/(2*(standard_deviation**2))))
+                                        z = z/(np.sqrt(2*np.pi)*standard_deviationy*standard_deviationx)
+                                        if (rank_2[int(j-1)][int(i-1)]==1):
+                                            rank_2[int(j-1)][int(i-1)]=int(z*1000*200*50)
+                                            if(rank_2[int(j-1)][int(i-1)]<1.1):
+                                                rank_2[int(j-1)][int(i-1)]=1.1
+                                        else:
+                                            if(rank_2[int(j-1)][int(i-1)]<1.1):
+                                                rank_2[int(j-1)][int(i-1)]=1.1
+                                            else:
+                                                rank_2[int(j-1)][int(i-1)]=rank_2[int(j-1)][int(i-1)]+int(z*1000*200*50)*1.5
+                            p=p+1
+                            print("SUM of i=",p)#在每张图片处理结束后显示
                             print(f'Done. ({time.time() - t0:.3f}s)')
+                            print("max:",np.max(rank_2))
+                            print("min",np.min(rank_2))
+                            print("max--z:",np.max(z))
+                            print("min--z",np.min(z))
                             rate = rospy.Rate(2)
                             sizelist=[im0.shape[0],im0.shape[1]]
                             r1=Float64MultiArray()
@@ -241,7 +229,7 @@ class YOLOP(object):
                             self.image = im0[:, :, [2, 1, 0]]
                             yolo_idmask= self.image
                             yolo_scoremask=self.image
-                #yolo_probability=rank_2
+            #yolo_probability=rank_2
                
                 #print(yolo_idmask==yolo_scoremask).all()
 
