@@ -129,7 +129,7 @@ class YOLOP(object):
                 save_txt = self.save_txt
                 save_img = self.save_img 
                 # Initialize
-                print("初始化")
+                #print("初始化")
                 set_logging()
                 t0 = time.time()
                 path, img, img0, cap = self.loadimage(self.image, self.imgsz)
@@ -143,12 +143,12 @@ class YOLOP(object):
                 pred = self.model(img, augment=self.augment)[0]
                 
                 # Apply NMS
-                print("进行nms")
+                #print("进行nms")
                 pred = non_max_suppression(pred, self.conf_thres, self.iou_thres, classes=self.classes, agnostic=self.agnostic_nms)
                 t2 = time_synchronized()
                 
                 # Apply Classifier
-                print("应用类")
+                #print("应用类")
                 if self.classify:
                     pred = apply_classifier(pred, self.modelc, img, img0)
                 
@@ -164,10 +164,10 @@ class YOLOP(object):
                             n = (det[:, -1] == c).sum()  # detections per class
                             s += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "  # add to string
                         
-                        i=0
+                        p=0
                         wide=0
                         high=0
-                        rank_2 = np.ones((im0.shape[0],im0.shape[1]))*0.2
+                        rank_2 = np.ones((im0.shape[0],im0.shape[1]))*0.1
                         for *xyxy, conf, cls in reversed(det):
                             if self.names[int(cls)] == 'person':
                                 continue
@@ -182,9 +182,6 @@ class YOLOP(object):
                                 y1=int(xyxy[1])
                                 x2=int(xyxy[2])
                                 y2=int(xyxy[3])
-                                print(x1,x2,y1,y2,'——识别框的四点坐标')
-                                print('rank_2:',shape(rank_2))
-                                print('rank_2局部大小:',shape(rank_2[x1:x2,y1:y2]))
                                 a=np.linspace(int(xyxy[0]),int(xyxy[2]),int(xyxy[2])-int(xyxy[0]))
                                 b=np.linspace(int(xyxy[1]),int(xyxy[3]),int(xyxy[3])-int(xyxy[1]))
                                 meany=sum(a)/len(a)
@@ -196,20 +193,30 @@ class YOLOP(object):
                                         z = np.exp(-((i-meany)**2/(2*(standard_deviationx**2)) + (j - meanx)**2/(2*(standard_deviationy**2))))
                                         #print(np.exp(-((i-meany)**2/(2*(standard_deviation**2)) + (j - meanx)**2/(2*(standard_deviation**2))))
                                         z = z/(np.sqrt(2*np.pi)*standard_deviationy*standard_deviationx)
-                                        if (rank_2[int(j-1)][int(i-1)]==0.01):
-                                            rank_2[int(j-1)][int(i-1)]=int(z*1000*200*50)*0.001
+                                        if (rank_2[int(j-1)][int(i-1)]==0.1):
+                                            rank_2[int(j-1)][int(i-1)]=int(z*1000*200*50)
+                                            if(rank_2[int(j-1)][int(i-1)]<0.11):
+                                                rank_2[int(j-1)][int(i-1)]=0.11
                                         else:
-                                            rank_2[int(j-1)][int(i-1)]=rank_2[int(j)][int(i)]+int(z*1000*200*50)*0.0005
+                                            rank_2[int(j-1)][int(i-1)]=rank_2[int(j-1)][int(i-1)]+int(z*1000*200*50)*0.5
                             #rank_2=rank_2*50
-                            i=i+1
-                            print("SUM of i=",i)#在每张图片处理结束后显示
-                            '''cv2.imwrite('2.jpg',rank_2)
-                            print("rank_2的大小:",rank_2.size)
-                            print("rank_2的形状:",rank_2.shape)
-                            s = cv2.imread('2.jpg')     
-                            cv2.imshow('img2',s)
-                            cv2.waitKey(1)'''
+                            p=p+1
+                            print("SUM of i=",p)#在每张图片处理结束后显示
                         print(f'Done. ({time.time() - t0:.3f}s)')
+                        #print("max:",np.max(rank_2))
+                        #print("min",np.min(rank_2))
+                        max=np.max(rank_2)
+                        min=np.min(rank_2)
+                        print(shape(rank_2))
+                        m=0
+                        while m<=479:
+                            n=0
+                            while  n<=639:
+                                rank_2[m,n] = (rank_2[m,n]-min)/(max-min)*0.89+0.1
+                                n=n+1
+                            m=m+1
+                        print("max:",np.max(rank_2))
+                        print("min",np.min(rank_2))
                         rate = rospy.Rate(2)
                         sizelist=[im0.shape[0],im0.shape[1]]
                         r1=Float64MultiArray()

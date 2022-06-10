@@ -230,41 +230,7 @@ class YOLOP(object):
                             yolo_idmask= self.image
                             yolo_scoremask=self.image
             #yolo_probability=rank_2
-               
-                #print(yolo_idmask==yolo_scoremask).all()
 
-                '''print('idmask是什么',type(yolo_idmask))
-                print("数组大小：", yolo_idmask.size)      #打印数组尺寸，即数组元素总数  
-                print("数组形状：", yolo_idmask.shape)         #打印数组形状  
-                print("数组的维度数目", yolo_idmask.ndim)      #打印数组的维度数目               
-                cv2.imwrite('4.jpg',yolo_idmask)
-                #print(yolo_idmask)
-                j = cv2.imread('4.jpg')     
-                cv2.imshow('img4',j)
-                cv2.waitKey(1)
-
-                print('scoremask是什么',type(yolo_scoremask))
-                print("数组大小：", yolo_scoremask.size)      #打印数组尺寸，即数组元素总数  
-                print("数组形状：", yolo_scoremask.shape)         #打印数组形状  
-                print("数组的维度数目", yolo_scoremask.ndim)      #打印数组的维度数目 
-                #print(yolo_scoremask)
-                cv2.imwrite('3.jpg',yolo_scoremask)
-                #print(yolo_scoremask)
-                s = cv2.imread('3.jpg')     
-                cv2.imshow('img3',s)
-                cv2.waitKey(1)'''
-                '''data =img
-                print(data)
-                print("Type of every element:", data.dtype)
-                print("Number of dimensions:", data.ndim)
-                print("Shape of tensor:", data.shape)
-                print("Elements along axis 0 of tensor:", data.shape[0])
-                print("Elements along the last axis of tensor:", data.shape[-1])
-                print("所以需要创建640*480的2秩张量")'''
-                
-                #rank_2_tensor = torch.FloatTensor(640,480).fill_(0)
-                #print(rank_2_tensor)
-                #print("#2秩张量的类型",type(rank_2_tensor)) 
 
 		        ##############################################################
                 self.yoloresult.rawimg = self.cvb.cv2_to_imgmsg(self.image)
