@@ -1,5 +1,6 @@
 #coding=utf-8
 from re import X
+from more_itertools import sample
 from numpy.core.fromnumeric import shape
 from numpy.lib.npyio import save
 from scipy.stats.stats import trimboth
@@ -168,8 +169,17 @@ class YOLOP(object):
                         wide=0
                         high=0
                         rank_2 = np.ones((im0.shape[0],im0.shape[1]))*0.1
+                        rank_sample = np.ones((im0.shape[0],im0.shape[1]))*0.1
                         for *xyxy, conf, cls in reversed(det):
                             if self.names[int(cls)] == 'person':
+                                continue
+                            if self.names[int(cls)] == 'cup':
+                                continue
+                            if self.names[int(cls)] == 'chair':
+                                continue
+                            if self.names[int(cls)] == 'remote':
+                                continue
+                            if self.names[int(cls)] == 'keyboard':
                                 continue
                             if save_txt:  # Write to file
                                 xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
@@ -178,28 +188,59 @@ class YOLOP(object):
                                 label = '%s %.2f' % (self.names[int(cls)], conf)
                                 c = int(cls)
                                 plot_one_box(xyxy, im0, label=label, color=self.colors[int(cls)], line_thickness=3) 
-                                x1=int(xyxy[0])
-                                y1=int(xyxy[1])
-                                x2=int(xyxy[2])
-                                y2=int(xyxy[3])
+                                x1 = int(xyxy[0])
+                                if(x1 > 639):
+                                    x1 = 639
+                                if(x1 < 0):
+                                    x1 = 0                                    
+                                y1 = int(xyxy[1])
+                                if(y1>479):
+                                    y1 = 479
+                                if(y1 < 0):
+                                    y1 = 0       
+                                x2 = int(xyxy[2])
+                                if(x2 > 639):
+                                    x2 = 639
+                                if(x2 < 0):
+                                    x2 = 0       
+                                y2 = int(xyxy[3])
+                                if(y2>479):
+                                    y2=479
+                                if(y2 < 0):
+                                    y2 = 0
+                                xx = x2-x1
+                                yy = y2-y1                                           
                                 a=np.linspace(int(xyxy[0]),int(xyxy[2]),int(xyxy[2])-int(xyxy[0]))
                                 b=np.linspace(int(xyxy[1]),int(xyxy[3]),int(xyxy[3])-int(xyxy[1]))
-                                meany=sum(a)/len(a)
-                                meanx=sum(b)/len(b)
-                                standard_deviationx=5.0
-                                standard_deviationy=5.0*(y2-y1)/(x2-x1)                            
-                                for i in np.linspace(x1,x2,x2-x1):
+                                meany=(x2 - x1) / 2 + x1
+                                meanx=(y2 - y1) / 2 + y1
+                                standard_deviationx=10
+                                standard_deviationy=10*(y2-y1)/(x2-x1)              
+                                '''for i in np.linspace(x1,x2,x2-x1):
                                     for j in np.linspace(y1,y2,y2-y1):
-                                        z = np.exp(-((i-meany)**2/(2*(standard_deviationx**2)) + (j - meanx)**2/(2*(standard_deviationy**2))))
-                                        #print(np.exp(-((i-meany)**2/(2*(standard_deviation**2)) + (j - meanx)**2/(2*(standard_deviation**2))))
-                                        z = z/(np.sqrt(2*np.pi)*standard_deviationy*standard_deviationx)
-                                        if (rank_2[int(j-1)][int(i-1)]==0.1):
-                                            rank_2[int(j-1)][int(i-1)]=int(z*1000*200*50)
-                                            if(rank_2[int(j-1)][int(i-1)]<0.11):
-                                                rank_2[int(j-1)][int(i-1)]=0.11
-                                        else:
-                                            rank_2[int(j-1)][int(i-1)]=rank_2[int(j-1)][int(i-1)]+int(z*1000*200*50)*0.5
-                            #rank_2=rank_2*50
+                                        z = np.exp(-((i-meany)*(i-meany)/standard_deviationx + (j - meanx)*(j-meanx)/standard_deviationy)*0.5)
+                                        z = z/(2*np.pi*standard_deviationx*standard_deviationy)
+                                        if (rank_2[int(j) , int(i)] == 0.1):
+                                            rank_2[int(j) , int(i)] = z * 100
+                                        if(rank_2[int(j) , int(i)] < z* 100):
+                                                rank_2[int(j) , int(i)] = z* 100'''
+
+                                edgex = abs(x2-x1)/2
+                                edgey = abs(y2-y1)/2
+
+                                for i in np.linspace(x1,x2,x2-x1):
+                                    for j in np.linspace(y1,y2,y2-y1):   
+                                        partx = abs(x1+edgex-i)
+                                        party = abs(y1+edgey-j)
+                                        z = math.sqrt((partx/edgex*254.9+0.1)**2+(party/edgey*254.9+0.1) **2)
+
+                                        if (rank_2[int(j) , int(i)] == 0.1):
+                                            rank_2[int(j) , int(i)] = z 
+                                        if(rank_2[int(j) , int(i)] < z):
+                                                rank_2[int(j) , int(i)] = rank_2[int(j) , int(i)]
+
+
+                            #rank_2=rank_2*10
                             p=p+1
                             print("SUM of i=",p)#在每张图片处理结束后显示
                         print(f'Done. ({time.time() - t0:.3f}s)')
@@ -207,12 +248,21 @@ class YOLOP(object):
                         #print("min",np.min(rank_2))
                         max=np.max(rank_2)
                         min=np.min(rank_2)
-                        print(shape(rank_2))
+                        print(type(rank_2))
+                        '''m=0
+                        while m<=479:
+                            n=0
+                            while  n<=639:
+                                if(rank_2[m,n]!=0.1):
+                                    rank_2[m,n] = ((rank_2[m,n]-min)/(max-min)*255+0.1)
+                                n=n+1
+                            m=m+1'''
                         m=0
                         while m<=479:
                             n=0
                             while  n<=639:
-                                rank_2[m,n] = (rank_2[m,n]-min)/(max-min)*0.89+0.1
+                                if(rank_2[m,n]!=0.1):
+                                    rank_2[m,n]=240-rank_2[m,n]
                                 n=n+1
                             m=m+1
                         print("max:",np.max(rank_2))

@@ -36,7 +36,7 @@ def callback(msg):
     #np.savetxt('./'+ str(cv_matrix.max())+'.txt', cv_matrix,fmt ='%d')
     #np.savetxt('./'+ str(np.unique(cv_matrix)[0])+'.txt', cv_matrix,fmt ='%d')
     #print(str(cv_matrix.max()))
-    print(str(np.unique(cv_matrix)[0]))
+    print(str(np.unique(cv_matrix)))
     #num=num+1
 
     #print("n=%.2f",np.array(msg.data).reshape(486,646))
